@@ -1,0 +1,170 @@
+# Neural Networks From Scratch Elixir
+
+```elixir
+Mix.install([
+  {:nx, "~> 0.1.0"}
+])
+```
+
+## Ch 2. Coding Our First Neurons
+
+### A Single Neuron
+
+<!-- livebook:{"break_markdown":true} -->
+
+Given the (Python)
+
+```inputs [1, 2, 3]```
+
+```weights = [0.2, 0.8, -0.5]```
+
+```bias = 2```
+
+Then
+
+```output = inputs[0]*weights[0] + inputs[1]*weights[1] + inputs[2]*weights[2]) + bias```
+
+<!-- livebook:{"break_markdown":true} -->
+
+Since Elixir doesn't endorse list access by index, more succinctly
+
+```elixir
+# Given
+inputs = [1, 2, 3]
+weights = [0.2, 0.8, -0.5]
+bias = 2
+
+# then
+output = Enum.zip_reduce(inputs, weights, 0, fn i, w, acc -> i * w + acc end) + bias
+IO.puts(output)
+```
+
+### A Layer of Neurons
+
+<!-- livebook:{"break_markdown":true} -->
+
+Assume 4 inputs feed a layer of 3 neurons with
+
+```inputs = [1, 2, 3, 2.5]```
+
+```weights1 = [0.2, 0.8, -0.5, 1]```
+
+```weights2 = [0.5, -0.91, 0.26, -0.5]```
+
+```weights3 = [-0.26, -0.27, 0.17, 0.87]```
+
+```bias1 = 2```
+
+```bias2 = 3```
+
+```bias3 = 0.5```
+
+then
+
+```output1 = inputs[0]*weights1[0] + inputs[1]*weights1[1] + inputs[2]*weights1[2] + inputs[3]*weights1[3] + bias1```
+
+```output2 = inputs[0]*weights2[0] + inputs[1]*weights2[1] + inputs[2]*weights2[2] + inputs[3]*weights2[3] + bias2```
+
+```output3 = inputs[0]*weights3[0] + inputs[1]*weights3[1] + inputs[2]*weights3[2] + inputs[3]*weights3[3] + bias3```
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Tensors, Arrays, and Vectors
+
+<!-- livebook:{"break_markdown":true} -->
+
+In some languages, e.g. Python or Elixir
+
+```l = [1, 5, 6, 2]```
+
+is a list and
+
+```lol = [[1,5,6,2], [3,2,1,3]]```
+
+is a list of lists.
+
+2D arrays that are homogolous are matrices are described as having a shape of (rows, columns).
+Hence ```[[4,2], [5,1], [8,2]]``` is a ```(3,2)``` matrix.  Shapes are always describe 'outside in`.
+
+For the purposes of Deep Learrning, a Tensor is an object that can be represented as an array.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Dot Product and Vector Addition
+
+<!-- livebook:{"break_markdown":true} -->
+
+$\overrightarrow{a} \cdot \overrightarrow{b} = \sum_{i = 1}^{n} a_{1} b_{1} + a_{2} b_{2} + ... + a_{n}b_{n}$
+
+That is,
+
+$[1,2,3] \cdot [4, 5, 6] = 1 \cdot 4 + 2 \cdot 5 + 3 \cdot 6 = 32$
+
+<!-- livebook:{"break_markdown":true} -->
+
+### A Single Neuron with Nx
+
+```elixir
+inputs = Nx.tensor([1.0, 2.0, 3.0, 2.5])
+weights = Nx.tensor([0.2, 0.8, -0.5, 1.0])
+bias = 2.0
+output = Nx.add(Nx.dot(weights, inputs), bias)
+```
+
+### A Layer of Neurons with Nx
+
+```elixir
+inputs = Nx.tensor([1.0, 2.0, 3.0, 2.5])
+weights = Nx.tensor([[0.2, 0.8, -0.5, 1.0], [0.5, -0.91, 0.26, -0.5], [-0.26, -0.27, 0.17, 0.87]])
+biases = Nx.tensor([2.0, 3.0, 0.5])
+
+layer_outputs = Nx.add(Nx.dot(weights, inputs), biases)
+```
+
+### A Batch of Data
+
+<!-- livebook:{"break_markdown":true} -->
+
+Often NN process many samples at one time for speed and generalization.  To process a matrix of inputs requires use of a matrix product.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Matrix Product
+
+<!-- livebook:{"break_markdown":true} -->
+
+In a matrix product we perform dot products of all combinations of rows from the first matrix with columns of the second matrix, resulting in a matrix of dot products.
+
+Thus, the size of the second dimension of the left matrix must match the size of the first dimention of the right matrix.  L(columns) = R(rows).
+
+Given a row vector
+$$a = \begin{bmatrix}1 & 2 & 3\end{bmatrix}$$ with shape (1,3)
+
+and column vector $$b = \begin{bmatrix}2 \\3 \\4 \end{bmatrix}$$ with shape (3, 1)
+
+then the matrix product of a and b is the matrix
+
+$$a b = 1 \cdot 2 + 2 \cdot 3 + 3 \cdot 4 = \begin{bmatrix}20\end{bmatrix}$$ with shape (1,1)
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Transposition for the Matrix Product
+
+<!-- livebook:{"break_markdown":true} -->
+
+$\overrightarrow{a} \cdot \overrightarrow{b} = ab^{T}$
+
+where $b^{T}$ is the transposition of $b$, where rows become columns and vice versa.
+
+```elixir
+a = Nx.tensor([[1, 2, 3]])
+IO.inspect(Nx.shape(a))
+b = Nx.tensor([[4], [5], [6]])
+IO.inspect(Nx.shape(b))
+
+# Note that dot apparently automagicallly transposes the 2nd matrix?
+c = Nx.dot(a, b)
+IO.inspect(Nx.shape(c))
+```
+
+### A Layer of Neurons & Batch of Data with Nx
