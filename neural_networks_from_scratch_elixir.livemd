@@ -2,11 +2,13 @@
 
 ```elixir
 Mix.install([
-  {:nx, "~> 0.1.0"}
+  {:nx, "~> 0.1.0"},
+  {:vega_lite, "~> 0.1.6"},
+  {:kino_vega_lite, "~> 0.1.10"}
 ])
 ```
 
-## Ch 2. Coding Our First Neurons
+## Ch. 2 Coding Our First Neurons
 
 ### A Single Neuron
 
@@ -54,7 +56,7 @@ Assume 4 inputs feed a layer of 3 neurons with
 ```weights3 = [-0.26, -0.27, 0.17, 0.87]```
 
 ```bias1 = 2```
-
+with
 ```bias2 = 3```
 
 ```bias3 = 0.5```
@@ -84,7 +86,7 @@ is a list and
 is a list of lists.
 
 2D arrays that are homogolous are matrices are described as having a shape of (rows, columns).
-Hence ```[[4,2], [5,1], [8,2]]``` is a ```(3,2)``` matrix.  Shapes are always describe 'outside in`.
+Hence ```[[4,2], [5,1], [8,2]]``` is a ```(3,2)``` matrix.  Shapes are always describe outside -in.
 
 For the purposes of Deep Learrning, a Tensor is an object that can be represented as an array.
 
@@ -104,6 +106,8 @@ $[1,2,3] \cdot [4, 5, 6] = 1 \cdot 4 + 2 \cdot 5 + 3 \cdot 6 = 32$
 
 ### A Single Neuron with Nx
 
+<!-- livebook:{"force_markdown":true} -->
+
 ```elixir
 inputs = Nx.tensor([1.0, 2.0, 3.0, 2.5])
 weights = Nx.tensor([0.2, 0.8, -0.5, 1.0])
@@ -112,6 +116,8 @@ output = Nx.add(Nx.dot(weights, inputs), bias)
 ```
 
 ### A Layer of Neurons with Nx
+
+<!-- livebook:{"force_markdown":true} -->
 
 ```elixir
 inputs = Nx.tensor([1.0, 2.0, 3.0, 2.5])
@@ -156,6 +162,8 @@ $\overrightarrow{a} \cdot \overrightarrow{b} = ab^{T}$
 
 where $b^{T}$ is the transposition of $b$, where rows become columns and vice versa.
 
+<!-- livebook:{"force_markdown":true} -->
+
 ```elixir
 a = Nx.tensor([[1, 2, 3]])
 IO.inspect(Nx.shape(a))
@@ -168,3 +176,39 @@ IO.inspect(Nx.shape(c))
 ```
 
 ### A Layer of Neurons & Batch of Data with Nx
+
+<!-- livebook:{"break_markdown":true} -->
+
+Assume 3 samples of 4 inputs and a layer with 4 neurons, we must transpose the weight matrix to allow the matrix product.
+
+```elixir
+inputs = Nx.tensor([[1.0, 2.0, 3.0, 2.5], [2.0, 5.0, -1.0, 2.0], [-1.5, 2.7, 3.3, -0.8]])
+# IO.inspect(inputs)
+weights = Nx.tensor([[0.2, 0.8, -0.5, 1.0], [0.5, -0.91, 0.25, -0.5], [-0.26, -0.27, 0.17, 0.87]])
+# IO.inspect(weights)
+
+biases = Nx.tensor([2.0, 3.0, 0.5])
+# IO.inspect(biases)
+
+outputs = Nx.add(Nx.dot(inputs, Nx.transpose(weights)), biases)
+# IO.inspect(outputs)
+```
+
+## Ch. 3 Adding Layers
+
+Neural Networks are _deep_ when they have 2 or more *hiddden layers*.
+
+For each layer, we must make sure that the expected input to that layere matches the previous layer's output.
+
+```elixir
+inputs = Nx.tensor([[1, 2, 3, 2.5], [2, 5, -1, 2], [-1.5, 2.7, 3.3, -0.8]])
+
+weights1 = Nx.tensor([[0.2, 0.8, -0.5, 1], [0.5, -0.91, 0.26, -0.5], [-0.26, -0.27, 0.17, 0.87]])
+biases1 = Nx.tensor([2, 3, 0.5])
+
+weights2 = Nx.tensor([[0.1, -0.14, 0.5], [-0.5, 0.12, -0.33], [-0.44, 0.73, -0.13]])
+biases2 = Nx.tensor([-1, 2, -0.5])
+
+layer1_output = Nx.add(Nx.dot(inputs, Nx.transpose(weights1)), biases1)
+layer2_output = Nx.add(Nx.dot(layer1_output, Nx.transpose(weights2)), biases2)
+```
